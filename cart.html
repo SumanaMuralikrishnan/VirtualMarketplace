@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        nav {
+            background-color: rgba(0, 0, 0, 1);
+            padding: 1rem 0;
+            z-index: 1;
+        }
+
+        nav ul {
+            list-style-type: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0;
+            margin: 0;
+        }
+
+        nav ul li {
+            display: inline;
+            margin-right: 15px;
+        }
+
+        nav ul li a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        footer {
+            background-color: #000;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            width: 100%;
+            position: fixed;
+            bottom: 0;
+          }
+          
+          .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 0 20px;
+          }
+          
+          .social-media a {
+            color: white;
+            margin: 0 10px;
+            font-size: 20px;
+            text-decoration: none;
+          }
+          
+          .contact-details p {
+            margin: 0;
+          }
+
+        .container {
+            margin-top: 20px;
+            margin-bottom: 60px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ccc;
+            padding: 10px 0;
+        }
+
+        .cart-item img {
+            width: 100px;
+            height: auto;
+        }
+
+        .cart-details {
+            flex-grow: 1;
+            margin-left: 20px;
+        }
+
+        .cart-controls {
+            display: flex;
+            align-items: center;
+        }
+
+        .cart-controls button {
+            margin: 0 5px;
+        }
+
+        .total-card {
+            position: sticky;
+            top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="productlist.html"><img src="logo.png" alt="Logo" height="100px" width="200px"></a></li>
+                <li><a href="productlist.html">EBooks</a></li>
+                <li><a href="contact.html">Contact/Enquiry</a></li>
+                <li><a href="login.html">Login/Signup</a></li>
+                <li><a href="cart.html"><i class="fas fa-shopping-cart"></i></a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8">
+                <div id="cart-items">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card total-card">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Amount</h5>
+                        <p class="card-text">Amount to be paid: ₹<span id="total-amount">0</span></p>
+                        <button class="btn btn-success">Checkout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+          <div class="social-media">
+            <a href="https://www.facebook.com" class="fab fa-facebook-f"></a>
+            <a href="https://www.twitter.com" class="fab fa-twitter"></a>
+            <a href="https://www.instagram.com" class="fab fa-instagram"></a>
+          </div>
+          <div class="contact-details">
+            <p>Contact us: thebooknook@gmail.com | +918738277589</p>
+          </div>
+        </div>
+      </footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+        const cartContainer = document.getElementById('cart-items');
+        const totalAmountElement = document.getElementById('total-amount');
+        let totalAmount = 0;
+
+        cartItems.forEach((item, index) => {
+            const itemElement = document.createElement('div');
+            itemElement.classList.add('cart-item');
+            itemElement.innerHTML = `
+                <div>${item.name}</div>
+                <div>₹${item.price.toLocaleString()}</div>
+                <div>
+                    <button class="btn btn-primary btn-sm minus-btn" data-index="${index}">-</button>
+                    <span class="cart-quantity">${item.quantity}</span>
+                    <button class="btn btn-primary btn-sm plus-btn" data-index="${index}">+</button>
+                </div>
+                <div>₹${(item.price * item.quantity).toLocaleString()}</div>
+                <button class="btn btn-danger btn-sm remove-btn" data-index="${index}">Remove</button>
+            `;
+            cartContainer.appendChild(itemElement);
+            totalAmount += item.price * item.quantity;
+        });
+
+        totalAmountElement.textContent = `₹${totalAmount.toLocaleString()}`;
+
+        document.querySelectorAll('.minus-btn').forEach(btn => {
+            btn.addEventListener('click', (event) => {
+                updateCartQuantity(event.target.dataset.index, -1);
+            });
+        });
+
+        document.querySelectorAll('.plus-btn').forEach(btn => {
+            btn.addEventListener('click', (event) => {
+                updateCartQuantity(event.target.dataset.index, 1);
+            });
+        });
+
+        document.querySelectorAll('.remove-btn').forEach(btn => {
+            btn.addEventListener('click', (event) => {
+                removeCartItem(event.target.dataset.index);
+            });
+        });
+
+        function updateCartQuantity(index, change) {
+            let quantity = cartItems[index].quantity;
+            quantity += change;
+            if (quantity < 0) {
+                quantity = 0;
+            }
+            cartItems[index].quantity = quantity;
+            localStorage.setItem('cartItems', JSON.stringify(cartItems));
+            window.location.reload();
+        }
+
+        function removeCartItem(index) {
+            cartItems.splice(index, 1);
+            localStorage.setItem('cartItems', JSON.stringify(cartItems));
+            window.location.reload();
+        }
+    });
+</script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-A3W5y6KFhS0BvGfB+0nd/P3d4yFQN9lgjZ6LZT1K7hMzTfS2nC3F40f71M6TktKf" crossorigin="anonymous"></script>
+</body>
+</html>
